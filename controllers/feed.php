@@ -107,12 +107,19 @@ Router\post_action('refresh-feed', function() {
 
 // Display all feeds
 Router\get_action('feeds', function() {
+    $nothing_to_read = Request\int_param('nothing_to_read');
+    $nb_unread_items = Model\Item\count_by_status('unread');
+
+    // possible with remember me function
+    if ($nothing_to_read === 1 && $nb_unread_items > 0) {
+        Response\redirect('?action=unread');
+    }
 
     Response\html(Template\layout('feeds', array(
         'favicons' => Model\Feed\get_all_favicons(),
         'feeds' => Model\Feed\get_all_item_counts(),
-        'nothing_to_read' => Request\int_param('nothing_to_read'),
-        'nb_unread_items' => Model\Item\count_by_status('unread'),
+        'nothing_to_read' => $nothing_to_read,
+        'nb_unread_items' => $nb_unread_items,
         'nb_failed_feeds' => Model\Feed\count_failed_feeds(),
         'menu' => 'feeds',
         'title' => t('Subscriptions')
@@ -151,9 +158,9 @@ Router\action('subscribe', function() {
         }
     }
 
-    $values += array('download_content' => 0, 'rtl' => 0);
+    $values += array('download_content' => 0, 'rtl' => 0, 'cloak_referrer' => 0);
     $url = trim($url);
-    $feed_id = Model\Feed\create($url, $values['download_content'], $values['rtl']);
+    $feed_id = Model\Feed\create($url, $values['download_content'], $values['rtl'], $values['cloak_referrer']);
 
     if ($feed_id) {
         Session\flash(t('Subscription added successfully.'));

@@ -26,6 +26,7 @@ Router\get_action('unread', function() {
 
     Response\html(Template\layout('unread_items', array(
         'favicons' => Model\Feed\get_item_favicons($items),
+        'original_marks_read' => Model\Config\get('original_marks_read'),
         'order' => $order,
         'direction' => $direction,
         'display_mode' => Model\Config\get('items_display_mode'),
@@ -65,6 +66,15 @@ Router\get_action('show', function() {
             break;
     }
 
+    $image_proxy = Model\Config\get('image_proxy');
+
+    // add the image proxy if requested and required
+    $item['content'] = Model\Proxy\addProxyToTags($item['content'], $item['url'], $image_proxy, $feed['cloak_referrer']);
+
+    if ($image_proxy && strpos($item['enclosure_type'], 'image') === 0) {
+        $item['enclosure'] = Model\Proxy\addProxyToLink($item['enclosure']);
+    }
+
     Response\html(Template\layout('show_item', array(
         'nb_unread_items' => $nb_unread_items = Model\Item\count_by_status('unread'),
         'item' => $item,
@@ -72,7 +82,6 @@ Router\get_action('show', function() {
         'item_nav' => isset($nav) ? $nav : null,
         'menu' => $menu,
         'title' => $item['title'],
-        'image_proxy_enabled' => (bool) Model\Config\get('image_proxy'),
     )));
 });
 
@@ -89,6 +98,7 @@ Router\get_action('feed-items', function() {
 
     Response\html(Template\layout('feed_items', array(
         'favicons' => Model\Feed\get_favicons(array($feed['id'])),
+        'original_marks_read' => Model\Config\get('original_marks_read'),
         'order' => $order,
         'direction' => $direction,
         'display_mode' => Model\Config\get('items_display_mode'),
@@ -105,8 +115,15 @@ Router\get_action('feed-items', function() {
 
 // Ajax call to download an item (fetch the full content from the original website)
 Router\post_action('download-item', function() {
+    $id = Request\param('id');
 
-    Response\json(Model\Item\download_content_id(Request\param('id')));
+    $item = Model\Item\get($id);
+    $feed = Model\Feed\get($item['feed_id']);
+
+    $download = Model\Item\download_content_id($id);
+    $download['content'] = Model\Proxy\addProxyToTags($download['content'], $item['url'], Model\Config\get('image_proxy'), $feed['cloak_referrer']);
+
+    Response\json($download);
 });
 
 // Ajax call change item status
@@ -199,4 +216,22 @@ Router\get_action('mark-item-removed', function() {
     Model\Item\set_removed($id);
 
     Response\Redirect('?action='.$redirect.'&offset='.$offset.'&feed_id='.$feed_id);
+});
+
+Router\post_action('latest-feeds-items', function() {
+    $items = Model\Item\get_latest_feeds_items();
+    $nb_unread_items = Model\Item\count_by_status('unread');
+
+    $feeds = array_reduce($items, function ($result, $item) {
+        $result[$item['id']] = array(
+            'time' => $item['updated'] ?: 0,
+            'status' => $item['status']
+        );
+        return $result;
+    }, array());
+
+    Response\json(array(
+        'feeds' => $feeds,
+        'nbUnread' => $nb_unread_items
+    ));
 });

@@ -1,6 +1,7 @@
 <?php
 
 return array(
+    'plural' => function($n) { return 0; },
     // 'attachment' => '',
     // 'When there is nothing to read, redirect me to this page' => '',
     // 'There is nothing new to read, enjoy your favorites articles!' => '',
@@ -63,7 +64,6 @@ return array(
     'Remove automatically read items' => '自动移除已读条目',
     'Never' => '从不',
     'After %d day' => '%d 天之后',
-    'After %d days' => '%d 天之后',
     'unread' => '未读',
     'Unread' => '未读',
     'bookmark' => '收藏',
@@ -147,17 +147,11 @@ return array(
     'Show help' => '显示帮助',
     'Close help' => '关闭帮助',
     // '%d second ago' => '',
-    // '%d seconds ago' => '',
     // '%d minute ago' => '',
-    // '%d minutes ago' => '',
     // '%d hour ago' => '',
-    // '%d hours ago' => '',
     // '%d day ago' => '',
-    // '%d days ago' => '',
     // '%d week ago' => '',
-    // '%d weeks ago' => '',
     // '%d month ago' => '',
-    // '%d months ago' => '',
     // 'Timezone' => '',
     // 'Update all subscriptions' => '',
     // 'Auto-Update URL' => '',
@@ -231,4 +225,9 @@ return array(
     // 'Download favicons' => '',
     // 'general' => '',
     // 'An error occurred during the last check. Refresh the feed manually and check the %sconsole%s for errors afterwards!' => '',
+    // 'Refresh interval in minutes for unread counter' => '',
+    // 'Nothing to show. Enable the debug mode to see log messages.' => '',
+    // 'Enable debug mode' => '',
+    // 'Original link marks article as read' => '',
+    // 'Cloak the image referrer' => '',
 );
